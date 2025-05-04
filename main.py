@@ -22,6 +22,11 @@ def start(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
+    reserves = {}
+    reserves['user_id'] = call.message.chat.id
+    reserves['username'] = call.message.chat.username
+    reserves['reserves']= []
+    active_deserve = {}
     if call.data == 'get_reserws':
         new_reserve = {'chat_id': call.message.chat.id}
         data = get_reserws(call.message.chat.id)
@@ -33,10 +38,29 @@ def callback_query(call):
             markup.add(types.InlineKeyboardButton(address, callback_data=address))
         bot.send_message(call.message.chat.id, 'Выберите ресторан', reply_markup=markup)
     elif call.data in config.ADDRESSES:
+        active_deserve['address'] = call.data
+        markup = types.InlineKeyboardMarkup()
+        for date in config.FREE_DATES:
+            markup.add(types.InlineKeyboardButton(date, callback_data=date))
+        bot.send_message(call.message.chat.id, 'Выберите дату', reply_markup=markup)
+    elif call.data in config.FREE_DATES:
+        active_deserve['date'] = call.data
+        markup = types.InlineKeyboardMarkup()
+        for time in config.FREE_TIME:
+            markup.add(types.InlineKeyboardButton(time, callback_data=time))
+        bot.send_message(call.message.chat.id, 'Выберите время', reply_markup=markup)
+    elif call.data in config.FREE_TIME:
+        active_deserve['time'] = call.data
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton('Подтвердить', callback_data='confirm'))
+        bot.send_message(call.message.chat.id, 'Подтвердите выбор', reply_markup=markup)
+    elif call.data == 'confirm':
+        bot.send_message(call.message.chat.id, 'Ваша reserva: \n' + str(active_deserve))
+        bot.send_message(call.message.chat.id, 'Введите имя')
+        active_deserve['name'] = call.message.text
 
 
-def change_data(data):
-    return data
+
 
 def get_reserws(user_id):
     if DEBUG:
