@@ -4,6 +4,7 @@ from telebot import types
 import config
 import json
 import datetime
+import pandas as pd
 
 bot = telebot.TeleBot("7896735623:AAFuA-tW8Rzh56HRyTbrVw8xnhji4oRWaUk")
 
@@ -44,11 +45,13 @@ def callback_query(call):
     elif call.data in config.ADDRESSES:
         active_reservations[chat_id]['address'] = call.data
         markup = types.InlineKeyboardMarkup()
-        for date in config.FREE_DATES:
+        
+        
+        for date in get_reserve_dates():
             markup.add(types.InlineKeyboardButton(date, callback_data=date))
         bot.send_message(chat_id, 'Выберите дату', reply_markup=markup)
 
-    elif call.data in config.FREE_DATES:
+    elif call.data in get_reserve_dates():
         active_reservations[chat_id]['date'] = call.data
         markup = types.InlineKeyboardMarkup()
         for time in config.FREE_TIME:
@@ -62,7 +65,8 @@ def callback_query(call):
         bot.send_message(chat_id, 'Подтвердите выбор', reply_markup=markup)
 
     elif call.data == 'confirm':
-        bot.send_message(chat_id, 'Ваша бронь: \n' + str(active_reservations[chat_id]))
+        reserve_str = f'Ресторан: {active_reservations[chat_id]["address"]}\nДата: {active_reservations[chat_id]["date"]}\nВремя: {active_reservations[chat_id]["time"]}'
+        bot.send_message(chat_id, 'Ваша бронь: \n' + reserve_str)
         msg = bot.send_message(chat_id, 'Введите имя')
         bot.register_next_step_handler(msg, process_name, chat_id)
 
@@ -73,6 +77,7 @@ def process_name(message, chat_id):
                          active_reservations[chat_id]['time'])
     if result and result.get('status_code') == 200:
         bot.send_message(chat_id, f'Бронь успешно создана для {active_reservations[chat_id]["name"]}!')
+        add_reserws(chat_id, active_reservations[chat_id]['address'], active_reservations[chat_id]['date'], active_reservations[chat_id]['time'])
     else:
         bot.send_message(chat_id, 'Ошибка при создании брони')
     del active_reservations[chat_id]  
@@ -89,6 +94,15 @@ def get_reserws(user_id):
     if response.status_code == 200:
         return response.json()
     return None
+
+def get_reserve_dates():
+    start_date = datetime.datetime.now()
+    end_date = datetime.datetime.now()+datetime.timedelta(days=7)
+    res = pd.date_range(
+        min(start_date, end_date),
+        max(start_date, end_date)
+    ).strftime('%d.%m.%Y').tolist()
+    return res
 
 def add_reserws(user_id, address,date, time):
     if DEBUG:
