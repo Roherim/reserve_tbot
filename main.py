@@ -14,13 +14,12 @@ active_reservations = {}
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("Получить бронирования", callback_data='get_reserws'))
-    markup.add(types.InlineKeyboardButton("Забронировать", callback_data='create_reserw'))
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        types.InlineKeyboardButton("Получить бронирования", callback_data='get_reserws'),
+        types.InlineKeyboardButton("Забронировать", callback_data='create_reserw')
+    )
     bot.send_message(message.chat.id, "Выберите действие", reply_markup=markup)
-   
-
-
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
@@ -37,31 +36,37 @@ def callback_query(call):
             bot.send_message(chat_id, 'Ошибка при получении бронирований')
 
     elif call.data == 'create_reserw':
-        markup = types.InlineKeyboardMarkup()
+        markup = types.InlineKeyboardMarkup(row_width=1)
         for address in config.ADDRESSES:
             markup.add(types.InlineKeyboardButton(address, callback_data=address))
+        markup.add(types.InlineKeyboardButton("Назад", callback_data='start'))
         bot.send_message(chat_id, 'Выберите ресторан', reply_markup=markup)
+
+    elif call.data == 'start':
+        start(call.message)
 
     elif call.data in config.ADDRESSES:
         active_reservations[chat_id]['address'] = call.data
-        markup = types.InlineKeyboardMarkup()
-        
-        
-        for date in get_reserve_dates():
-            markup.add(types.InlineKeyboardButton(date, callback_data=date))
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        dates = get_reserve_dates()
+        buttons = [types.InlineKeyboardButton(date, callback_data=date) for date in dates]
+        markup.add(*buttons)
+        markup.add(types.InlineKeyboardButton("Назад", callback_data='create_reserw'))
         bot.send_message(chat_id, 'Выберите дату', reply_markup=markup)
 
     elif call.data in get_reserve_dates():
         active_reservations[chat_id]['date'] = call.data
-        markup = types.InlineKeyboardMarkup()
-        for time in config.FREE_TIME:
-            markup.add(types.InlineKeyboardButton(time, callback_data=time))
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        buttons = [types.InlineKeyboardButton(time, callback_data=time) for time in config.FREE_TIME]
+        markup.add(*buttons)
+        markup.add(types.InlineKeyboardButton("Назад", callback_data=active_reservations[chat_id]['address']))
         bot.send_message(chat_id, 'Выберите время', reply_markup=markup)
 
     elif call.data in config.FREE_TIME:
         active_reservations[chat_id]['time'] = call.data
-        markup = types.InlineKeyboardMarkup()
+        markup = types.InlineKeyboardMarkup(row_width=1)
         markup.add(types.InlineKeyboardButton('Подтвердить', callback_data='confirm'))
+        markup.add(types.InlineKeyboardButton("Назад", callback_data=active_reservations[chat_id]['date']))
         bot.send_message(chat_id, 'Подтвердите выбор', reply_markup=markup)
 
     elif call.data == 'confirm':
@@ -113,9 +118,5 @@ def add_reserws(user_id, address,date, time):
     if response.status_code == 200:
         return response.json()
     return None
-
-
-
-
 
 bot.polling(non_stop=True)
