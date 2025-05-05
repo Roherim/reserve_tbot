@@ -7,6 +7,10 @@ GET_RESERVATION_URL = f'{SERVER_DOMAIN}/api/get_reservations'
 
 ADD_RESERVATION_URL = f'{SERVER_DOMAIN}/api/add_reservation'
 
+
+BOT_TOKEN = 'your_bot_token'
+
+
 ADDRESSES = [
     'улица Пушкина, 12',
     'улица Ленина, 5',

@@ -6,7 +6,7 @@ import json
 import datetime
 import pandas as pd
 
-bot = telebot.TeleBot("7896735623:AAFuA-tW8Rzh56HRyTbrVw8xnhji4oRWaUk")
+bot = telebot.TeleBot(config.BOT_TOKEN)
 
 DEBUG = True
 
