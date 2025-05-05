@@ -82,6 +82,8 @@ def process_name(message, chat_id):
         bot.send_message(chat_id, 'Ошибка при создании брони')
     del active_reservations[chat_id]  
 
+    start(message)
+
 def get_reserws(user_id):
     if DEBUG:
         return {'err':None, 'status_code':200, 'res':[{'time': datetime.datetime.now()+ datetime.timedelta(days=3),

@@ -8,7 +8,7 @@ GET_RESERVATION_URL = f'{SERVER_DOMAIN}/api/get_reservations'
 ADD_RESERVATION_URL = f'{SERVER_DOMAIN}/api/add_reservation'
 
 
-BOT_TOKEN = 'your_bot_token'
+BOT_TOKEN = '7896735623:AAFuA-tW8Rzh56HRyTbrVw8xnhji4oRWaUk'
 
 
 ADDRESSES = [
